@@ -101,19 +101,31 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
-    DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
-        conn_max_age=DB_CONN_MAX_AGE,
-    ),
-    DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
-        # TODO: We need to add read only user to saleor platform,
-        # and we need to update docs.
-        # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
-        conn_max_age=DB_CONN_MAX_AGE,
-        test_options={"MIRROR": DATABASE_CONNECTION_DEFAULT_NAME},
-    ),
+    "default": {
+        "ENGINE": "tenant_schemas.postgresql_backend",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": "localhost",
+        "PORT": "5432",
+        "CONN_MAX_AGE": DB_CONN_MAX_AGE,
+        "CONN_HEALTH_CHECKS": True,
+    },
+    "replica": {
+        "ENGINE": "tenant_schemas.postgresql_backend",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": "localhost",
+        "PORT": "5432",
+        "CONN_MAX_AGE": DB_CONN_MAX_AGE,
+        "CONN_HEALTH_CHECKS": True,
+        "TEST": {
+            "MIRROR": "default",
+        },
+    },
 }
+
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
@@ -192,6 +204,7 @@ STATICFILES_FINDERS = [
 ]
 
 context_processors = [
+    "django.template.context_processors.request",
     "django.template.context_processors.debug",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
@@ -240,6 +253,7 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "tenant.middleware.RequestIDTenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -251,7 +265,9 @@ ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
 if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
     MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
 
-INSTALLED_APPS = [
+SHARED_APPS = [
+    "tenant_schemas",
+    "tenant",
     # External apps that need to go before django's
     "storages",
     # Django modules
@@ -295,6 +311,12 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
+]
+
+TENANT_APPS = ("django.contrib.contenttypes",)
+
+INSTALLED_APPS = list(SHARED_APPS) + [
+    app for app in TENANT_APPS if app not in SHARED_APPS
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
@@ -969,3 +991,11 @@ ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
 # Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
 # That setting limits the allowed number of transaction items for single entity.
 TRANSACTION_ITEMS_LIMIT = 100
+
+DATABASE_ROUTERS = ("tenant_schemas.routers.TenantSyncRouter",)
+
+TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.request",)
+
+TENANT_MODEL = "tenant.Client"
+
+DEFAULT_FILE_STORAGE = "tenant_schemas.storage.TenantFileSystemStorage"
