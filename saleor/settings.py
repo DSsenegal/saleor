@@ -276,6 +276,16 @@ SHARED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
+    # External apps
+    "django_measurement",
+    "django_prices",
+    "mptt",
+    "django_countries",
+    "django_filters",
+    "phonenumber_field",
+]
+
+TENANT_APPS = (
     # Local apps
     "saleor.permission",
     "saleor.auth",
@@ -304,16 +314,7 @@ SHARED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
-    # External apps
-    "django_measurement",
-    "django_prices",
-    "mptt",
-    "django_countries",
-    "django_filters",
-    "phonenumber_field",
-]
-
-TENANT_APPS = ("django.contrib.contenttypes",)
+)
 
 INSTALLED_APPS = list(SHARED_APPS) + [
     app for app in TENANT_APPS if app not in SHARED_APPS
