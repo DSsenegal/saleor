@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  core:
+    build: ./ 
+    container_name: core
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - ${BACKEND_MAP_PORT}:${BACKEND_SERVER_PORT}
+    depends_on:
+      - database
+    volumes:
+      - ./:/app/
+      - ./pyproject.toml:/app/pyproject.toml
+    environment:
+      - SECRET_KEY=saleor
+      - STATIC_URL=http://0.0.0.0:8000/static/
+
+  database:
+    image: postgres:16
+    container_name: database
+    volumes:
+      - ./database/data:/var/lib/postgresql/data/pgdata
+    ports:
+      - ${DATABASE_MAP_PORT}:${DATABASE_SERVER_PORT}
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    restart: always
+
+  dba:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    ports:
+      - ${PGADMIN_MAP_PORT}:${PGADMIN_SERVER_PORT}
+    volumes:
+      - ./database/pgadmin:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - database

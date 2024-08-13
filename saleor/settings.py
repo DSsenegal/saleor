@@ -68,7 +68,7 @@ ROOT_URLCONF = "saleor.urls"
 WSGI_APPLICATION = "saleor.wsgi.application"
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('admin', 'admin@example.com'),
 )
 MANAGERS = ADMINS
 
@@ -85,7 +85,7 @@ if not ALLOWED_CLIENT_HOSTS:
             "ALLOWED_CLIENT_HOSTS environment variable must be set when DEBUG=False."
         )
 
-ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
+ALLOWED_CLIENT_HOSTS = '*' # get_list(ALLOWED_CLIENT_HOSTS)
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
@@ -100,22 +100,32 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # This variable should be set to `replica`
 DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
+
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': "tenant_schemas.postgresql_backend",
+    #     'NAME': 'saleor',
+    #     'USER': 'saleor',
+    #     'PASSWORD': 'saleor',
+    #     'HOST': 'localhost',
+    #     'PORT': '3600',
+    # },
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:saleor@localhost:3600/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
+        engine='tenant_schemas.postgresql_backend'
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:saleor@localhost:3600/saleor",
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
-        # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+        # default="postgres://saleor_read_only:saleor@localhost:3600/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
         test_options={"MIRROR": DATABASE_CONNECTION_DEFAULT_NAME},
     ),
 }
 
-DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
+DATABASE_ROUTERS = ['tenant_schemas.routers.TenantSyncRouter', "saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -240,6 +250,9 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "tenant_schemas.middleware.TenantMiddleware",
+    # "tenant_schemas.middleware.DefaultTenantMiddleware", Rediriger vers le middleware par defaut
+
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -252,6 +265,9 @@ if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
     MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
 
 INSTALLED_APPS = [
+    'tenant_schemas',
+    "saleor.tenant",
+
     # External apps that need to go before django's
     "storages",
     # Django modules
@@ -288,6 +304,7 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
+
     # External apps
     "django_measurement",
     "django_prices",
@@ -296,6 +313,63 @@ INSTALLED_APPS = [
     "django_filters",
     "phonenumber_field",
 ]
+
+SHARED_APPS = (
+    'tenant_schemas',
+    "saleor.tenant",
+
+    'django.contrib.contenttypes',
+    # External apps that need to go before django's
+    "storages",
+    # Django modules
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "django.contrib.postgres",
+    "django_celery_beat",
+
+    # External apps
+    "django_measurement",
+    "django_prices",
+    "mptt",
+    "django_countries",
+    "django_filters",
+    "phonenumber_field",
+)
+
+
+TENANT_APPS = (
+    'django.contrib.contenttypes',
+    # Local 
+    "saleor.site",
+    "saleor.page",
+    "saleor.menu",
+    "saleor.permission",
+    "saleor.auth",
+    "saleor.plugins",
+    "saleor.account",
+    "saleor.discount",
+    "saleor.giftcard",
+    "saleor.product",
+    "saleor.attribute",
+    "saleor.channel",
+    "saleor.checkout",
+    "saleor.core",
+    "saleor.csv",
+    "saleor.graphql",
+    "saleor.order",
+    "saleor.invoice",
+    "saleor.seo",
+    "saleor.shipping",
+    "saleor.payment",
+    "saleor.tax",
+    "saleor.warehouse",
+    "saleor.webhook",
+    "saleor.app",
+    "saleor.thumbnail",
+    "saleor.schedulers",
+)
+
+TENANT_MODEL = "saleor.tenant.Client" # tenant Model
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
 if ENABLE_DJANGO_EXTENSIONS:

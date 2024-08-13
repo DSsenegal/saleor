@@ -30,3 +30,6 @@ venv.bak/
 
 # Exported results file
 django-queries-results.html
+
+# local
+database
