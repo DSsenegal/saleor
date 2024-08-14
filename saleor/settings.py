@@ -74,7 +74,7 @@ MANAGERS = ADMINS
 
 APPEND_SLASH = False
 
-_DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1"
+_DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1,*"
 
 ALLOWED_CLIENT_HOSTS = os.environ.get("ALLOWED_CLIENT_HOSTS")
 if not ALLOWED_CLIENT_HOSTS:
@@ -245,6 +245,7 @@ JWT_MANAGER_PATH = os.environ.get(
 
 MIDDLEWARE = [
     'django_tenants.middleware.main.TenantMainMiddleware',
+    # "client.middleware.TenantCustomMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -520,7 +521,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,*"))
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
