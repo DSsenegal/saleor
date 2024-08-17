@@ -334,6 +334,13 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
+    "storages",
+    # Django modules
+    "django.contrib.contenttypes",
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "django.contrib.postgres",
+    "django_celery_beat",
     # Local apps
     "saleor.permission",
     "saleor.auth",
@@ -361,7 +368,14 @@ TENANT_APPS = [
     "saleor.webhook",
     "saleor.app",
     "saleor.thumbnail",
-    "saleor.schedulers"
+    "saleor.schedulers",
+    # External apps
+    "django_measurement",
+    "django_prices",
+    "mptt",
+    "django_countries",
+    "django_filters",
+    "phonenumber_field",
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
@@ -520,7 +534,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,461d-172-166-156-96.ngrok-free.app"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
