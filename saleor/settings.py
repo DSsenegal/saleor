@@ -115,7 +115,12 @@ DATABASES = {
     ),
 }
 
-DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
+# Ajoutez le moteur de base de données par défaut
+DATABASES[DATABASE_CONNECTION_DEFAULT_NAME]['ENGINE'] = 'tenant_schemas.postgresql_backend'
+# Ajoutez le moteur de base de données pour la réplique
+DATABASES[DATABASE_CONNECTION_REPLICA_NAME]['ENGINE'] = 'tenant_schemas.postgresql_backend'
+
+DATABASE_ROUTERS = ["tenant_schemas.routers.TenantSyncRouter","saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -217,6 +222,14 @@ TEMPLATES = [
     }
 ]
 
+TEMPLATES[0]['OPTIONS']['context_processors'].extend([
+    'django.template.context_processors.request',
+])
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.request',
+)
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
@@ -240,6 +253,7 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "tenant_schemas.middleware.TenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -252,6 +266,8 @@ if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
     MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
 
 INSTALLED_APPS = [
+    "tenant_schemas",
+    'tenant',  # Add your tenant app here
     # External apps that need to go before django's
     "storages",
     # Django modules
@@ -295,6 +311,57 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
+]
+
+SHARED_APPS = [
+    "tenant_schemas",
+    'tenant',  # Add your tenant app here
+    # External apps that need to go before django's
+    "storages",
+    # Django modules
+    "django.contrib.contenttypes",
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "django.contrib.postgres",
+    "django_celery_beat",
+    # External apps
+    "django_measurement",
+    "django_prices",
+    "mptt",
+    "django_countries",
+    "django_filters",
+    "phonenumber_field",
+]
+
+TENANT_APPS = [
+    # Local apps
+    "saleor.permission",
+    "saleor.auth",
+    "saleor.plugins",
+    "saleor.account",
+    "saleor.discount",
+    "saleor.giftcard",
+    "saleor.product",
+    "saleor.attribute",
+    "saleor.channel",
+    "saleor.checkout",
+    "saleor.core",
+    "saleor.csv",
+    "saleor.graphql",
+    "saleor.menu",
+    "saleor.order",
+    "saleor.invoice",
+    "saleor.seo",
+    "saleor.shipping",
+    "saleor.site",
+    "saleor.page",
+    "saleor.payment",
+    "saleor.tax",
+    "saleor.warehouse",
+    "saleor.webhook",
+    "saleor.app",
+    "saleor.thumbnail",
+    "saleor.schedulers"
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
@@ -453,7 +520,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,461d-172-166-156-96.ngrok-free.app"))
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
@@ -969,3 +1036,7 @@ ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
 # Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
 # That setting limits the allowed number of transaction items for single entity.
 TRANSACTION_ITEMS_LIMIT = 100
+
+TENANT_MODEL = "tenant.Client" # app.Model
+
+DEFAULT_FILE_STORAGE = "tenant_schemas.storage.TenantFileSystemStorage"
