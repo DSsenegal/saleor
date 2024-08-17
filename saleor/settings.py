@@ -265,54 +265,6 @@ ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
 if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
     MIDDLEWARE = ["saleor.core.db.connection.log_writer_usage_middleware"] + MIDDLEWARE
 
-INSTALLED_APPS = [
-    "tenant_schemas",
-    'tenant',  # Add your tenant app here
-    # External apps that need to go before django's
-    "storages",
-    # Django modules
-    "django.contrib.contenttypes",
-    "django.contrib.sites",
-    "django.contrib.staticfiles",
-    "django.contrib.postgres",
-    "django_celery_beat",
-    # Local apps
-    "saleor.permission",
-    "saleor.auth",
-    "saleor.plugins",
-    "saleor.account",
-    "saleor.discount",
-    "saleor.giftcard",
-    "saleor.product",
-    "saleor.attribute",
-    "saleor.channel",
-    "saleor.checkout",
-    "saleor.core",
-    "saleor.csv",
-    "saleor.graphql",
-    "saleor.menu",
-    "saleor.order",
-    "saleor.invoice",
-    "saleor.seo",
-    "saleor.shipping",
-    "saleor.site",
-    "saleor.page",
-    "saleor.payment",
-    "saleor.tax",
-    "saleor.warehouse",
-    "saleor.webhook",
-    "saleor.app",
-    "saleor.thumbnail",
-    "saleor.schedulers",
-    # External apps
-    "django_measurement",
-    "django_prices",
-    "mptt",
-    "django_countries",
-    "django_filters",
-    "phonenumber_field",
-]
-
 SHARED_APPS = [
     "tenant_schemas",
     'tenant',  # Add your tenant app here
@@ -324,23 +276,6 @@ SHARED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
-    # External apps
-    "django_measurement",
-    "django_prices",
-    "mptt",
-    "django_countries",
-    "django_filters",
-    "phonenumber_field",
-]
-
-TENANT_APPS = [
-    "storages",
-    # Django modules
-    "django.contrib.contenttypes",
-    "django.contrib.sites",
-    "django.contrib.staticfiles",
-    "django.contrib.postgres",
-    "django_celery_beat",
     # Local apps
     "saleor.permission",
     "saleor.auth",
@@ -377,6 +312,10 @@ TENANT_APPS = [
     "django_filters",
     "phonenumber_field",
 ]
+
+TENANT_APPS = SHARED_APPS
+
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
 if ENABLE_DJANGO_EXTENSIONS:
@@ -534,7 +473,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,1278-172-166-151-115.ngrok-free.app"))
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
