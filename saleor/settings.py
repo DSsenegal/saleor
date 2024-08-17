@@ -268,8 +268,6 @@ if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
 SHARED_APPS = [
     "tenant_schemas",
     'tenant',  # Add your tenant app here
-    "django.contrib.admin",
-    "django.contrib.auth",
     # External apps that need to go before django's
     "storages",
     # Django modules
