@@ -19,7 +19,6 @@
       "label": "Mailpit UI"
     }
   },
-  "postCreateCommand": "python manage.py migrate",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -31,5 +30,8 @@
         "streetsidesoftware.code-spell-checker"
       ]
     }
+  },
+  "features": {
+    "ghcr.io/jckimble/devcontainer-features/ngrok:3": {}
   }
 }
