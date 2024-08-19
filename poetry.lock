@@ -1155,6 +1155,21 @@ python-crontab = ">=2.3.4"
 tzdata = "*"
 
 [[package]]
+name = "django-cors-headers"
+version = "4.4.0"
+description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django_cors_headers-4.4.0-py3-none-any.whl", hash = "sha256:5c6e3b7fe870876a1efdfeb4f433782c3524078fa0dc9e0195f6706ce7a242f6"},
+    {file = "django_cors_headers-4.4.0.tar.gz", hash = "sha256:92cf4633e22af67a230a1456cb1b7a02bb213d6536d2dcb2a4a24092ea9cebc2"},
+]
+
+[package.dependencies]
+asgiref = ">=3.6"
+django = ">=3.2"
+
+[[package]]
 name = "django-countries"
 version = "7.6.1"
 description = "Provides a country field for Django models."
@@ -1427,6 +1442,19 @@ Django = ">=2.2"
 ordered-set = "*"
 psycopg2-binary = "*"
 six = "*"
+
+[[package]]
+name = "django-tenants"
+version = "3.6.1"
+description = "Tenant support for Django using PostgreSQL schemas."
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-tenants-3.6.1.tar.gz", hash = "sha256:36052d5bfce8240afab062e2d33ffeb25e38fa57b2a2b003eacd7e8d60334d97"},
+]
+
+[package.dependencies]
+Django = ">=2.1,<5.1"
 
 [[package]]
 name = "django-timezone-field"
@@ -5529,4 +5557,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "95a3b3420205a5384f429f5947016ae02195a45b469fd52f2b991e307a3452f9"
+content-hash = "556096398f90a925d55afd65e7f04f5dbf3058f3b6b5df538fe40a22ef8e1a90"
