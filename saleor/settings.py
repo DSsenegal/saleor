@@ -74,7 +74,7 @@ MANAGERS = ADMINS
 
 APPEND_SLASH = False
 
-_DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1"
+_DEFAULT_CLIENT_HOSTS = "*"
 
 ALLOWED_CLIENT_HOSTS = os.environ.get("ALLOWED_CLIENT_HOSTS")
 if not ALLOWED_CLIENT_HOSTS:
@@ -85,9 +85,9 @@ if not ALLOWED_CLIENT_HOSTS:
             "ALLOWED_CLIENT_HOSTS environment variable must be set when DEBUG=False."
         )
 
-ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
+ALLOWED_CLIENT_HOSTS = ['*'] # get_list(ALLOWED_CLIENT_HOSTS)
 
-INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
+INTERNAL_IPS = ['*'] # get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
 # Maximum time in seconds Django can keep the database connections opened.
 # Set the value to 0 to disable connection persistence, database connections
@@ -102,11 +102,13 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:DsenegalSaleor2024@saleordb.cj6gm8s4qrsp.eu-central-1.rds.amazonaws.com:5432/saleordb",
+        engine='django_tenants.postgresql_backend',
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:DsenegalSaleor2024@saleordb.cj6gm8s4qrsp.eu-central-1.rds.amazonaws.com:5432/saleordb",
+        engine='django_tenants.postgresql_backend',
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
@@ -253,11 +255,35 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "tenant.middleware.RequestTenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://ec2-3-70-156-20.eu-central-1.compute.amazonaws.com",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
+
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'authorization-bearer',
+    '*',
+]
+
 
 ENABLE_RESTRICT_WRITER_MIDDLEWARE = get_bool_from_env(
     "ENABLE_RESTRICT_WRITER_MIDDLEWARE", False
@@ -276,6 +302,7 @@ SHARED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
+    "corsheaders",
     # Local apps
     "saleor.permission",
     "saleor.auth",
@@ -473,7 +500,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = ['*'] # get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,*"))
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
