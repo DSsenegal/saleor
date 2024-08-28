@@ -48,7 +48,7 @@ from .warehouse.schema import (
 )
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
-from .tenant.schema import TenantQueries
+from .tenant.schema import TenantQueries, TenantMutations
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
@@ -106,6 +106,7 @@ class Mutation(
     TaxMutations,
     WarehouseMutations,
     WebhookMutations,
+    TenantMutations
 ):
     pass
 
