@@ -102,12 +102,12 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:DsenegalSaleor2024@saleordb.cj6gm8s4qrsp.eu-central-1.rds.amazonaws.com:5432/saleordb",
+        default="postgres://saleor:saleor@localhost:5434/saleor11",
         engine='django_tenants.postgresql_backend',
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:DsenegalSaleor2024@saleordb.cj6gm8s4qrsp.eu-central-1.rds.amazonaws.com:5432/saleordb",
+        default="postgres://saleor:saleor@localhost:5434/saleor11",
         engine='django_tenants.postgresql_backend',
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
@@ -296,13 +296,18 @@ SHARED_APPS = [
     'tenant',  # Add your tenant app here
     # External apps that need to go before django's
     "storages",
+    
     # Django modules
     "django.contrib.contenttypes",
-    "django.contrib.sites",
-    "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
     "corsheaders",
+]
+
+TENANT_APPS = [
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    
     # Local apps
     "saleor.permission",
     "saleor.auth",
@@ -331,6 +336,7 @@ SHARED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
+    
     # External apps
     "django_measurement",
     "django_prices",
@@ -338,11 +344,9 @@ SHARED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
-]
+] 
 
-TENANT_APPS = SHARED_APPS
-
-INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+INSTALLED_APPS = list(SHARED_APPS) + list(TENANT_APPS)
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
 if ENABLE_DJANGO_EXTENSIONS:
