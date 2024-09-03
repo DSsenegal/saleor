@@ -104,12 +104,12 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5434/saleor01",
+        default="postgres://saleor:saleor@localhost:5434/saleor1",
         engine="django_tenants.postgresql_backend",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5434/saleor01",
+        default="postgres://saleor:saleor@localhost:5434/saleor1",
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
@@ -243,7 +243,8 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
-    "django_tenants.middleware.main.TenantMainMiddleware",
+    # "django_tenants.middleware.main.TenantMainMiddleware",
+    "client.middleware.CustomTenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -261,59 +262,16 @@ CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.log_writer_usage"
 SHARED_APPS = [
     "django_tenants",
     "client",
-    # External apps that need to go before django's
+    
     "storages",
-    # Django modules
-    "django.contrib.contenttypes",
-    "django.contrib.sites",
-    "django.contrib.staticfiles",
+    
     "django.contrib.postgres",
-    "django_celery_beat",
-    # Local apps
-    "saleor.permission",
-    "saleor.auth",
-    "saleor.plugins",
-    "saleor.account",
-    "saleor.discount",
-    "saleor.giftcard",
-    "saleor.product",
-    "saleor.attribute",
-    "saleor.channel",
-    "saleor.checkout",
-    "saleor.core",
-    "saleor.csv",
-    "saleor.graphql",
-    "saleor.menu",
-    "saleor.order",
-    "saleor.invoice",
-    "saleor.seo",
-    "saleor.shipping",
-    "saleor.site",
-    "saleor.page",
-    "saleor.payment",
-    "saleor.tax",
-    "saleor.warehouse",
-    "saleor.webhook",
-    "saleor.app",
-    "saleor.thumbnail",
-    "saleor.schedulers",
-    # External apps
-    "django_measurement",
-    "django_prices",
-    "mptt",
-    "django_countries",
-    "django_filters",
-    "phonenumber_field",
 ]
 
 TENANT_APPS = [
-    # External apps that need to go before django's
-    "storages",
-    # Django modules
-    "django.contrib.contenttypes",
     "django.contrib.sites",
+    "django.contrib.contenttypes",
     "django.contrib.staticfiles",
-    "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
     "saleor.permission",
@@ -343,16 +301,17 @@ TENANT_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
+   
     # External apps
     "django_measurement",
     "django_prices",
     "mptt",
     "django_countries",
     "django_filters",
-    "phonenumber_field",
+    "phonenumber_field", 
 ]
 
-INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+INSTALLED_APPS = list(TENANT_APPS) + [app for app in SHARED_APPS if app not in TENANT_APPS]
 
 TENANT_MODEL = "client.Client" # app.Model
 TENANT_DOMAIN_MODEL = "client.Domain"  # app.Model
