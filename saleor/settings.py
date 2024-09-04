@@ -105,11 +105,13 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:saleor@localhost:5434/saleor",
+        engine='django_tenants.postgresql_backend',
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:saleor@localhost:5434/saleor",
+        # engine='django_tenants.postgresql_backend',
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
@@ -118,7 +120,7 @@ DATABASES = {
     ),
 }
 
-DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
+DATABASE_ROUTERS = ['django_tenants.routers.TenantSyncRouter',"saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -194,6 +196,7 @@ STATICFILES_FINDERS = [
 ]
 
 context_processors = [
+    'django.template.context_processors.request',
     "django.template.context_processors.debug",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
@@ -242,6 +245,7 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "tenants.middleware.CustomTenantMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -256,7 +260,56 @@ if ENABLE_RESTRICT_WRITER_MIDDLEWARE:
 # Restrict inexplicit writer DB usage in Celery tasks
 CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.log_writer_usage"
 
-INSTALLED_APPS = [
+SHARED_APPS = [
+    "django_tenants",
+    "tenants",
+    
+     # External apps that need to go before django's
+    "storages",
+    # Django modules
+    "django.contrib.postgres",
+    "django.contrib.contenttypes",
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "django_celery_beat",
+    # Local apps
+    "saleor.permission",
+    "saleor.auth",
+    "saleor.plugins",
+    "saleor.account",
+    "saleor.discount",
+    "saleor.giftcard",
+    "saleor.product",
+    "saleor.attribute",
+    "saleor.channel",
+    "saleor.checkout",
+    "saleor.core",
+    "saleor.csv",
+    "saleor.graphql",
+    "saleor.menu",
+    "saleor.order",
+    "saleor.invoice",
+    "saleor.seo",
+    "saleor.shipping",
+    "saleor.site",
+    "saleor.page",
+    "saleor.payment",
+    "saleor.tax",
+    "saleor.warehouse",
+    "saleor.webhook",
+    "saleor.app",
+    "saleor.thumbnail",
+    "saleor.schedulers",
+    # External apps
+    "django_measurement",
+    "django_prices",
+    "mptt",
+    "django_countries",
+    "django_filters",
+    "phonenumber_field",
+]
+
+TENANT_APPS = [
     # External apps that need to go before django's
     "storages",
     # Django modules
@@ -302,11 +355,16 @@ INSTALLED_APPS = [
     "phonenumber_field",
 ]
 
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
 if ENABLE_DJANGO_EXTENSIONS:
     INSTALLED_APPS += [
         "django_extensions",
     ]
+    
+TENANT_MODEL = "tenants.Client"
+TENANT_DOMAIN_MODEL = "tenants.Domain"
 
 ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
 if ENABLE_DEBUG_TOOLBAR:
@@ -458,7 +516,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,*"))
 ALLOWED_GRAPHQL_ORIGINS: list[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
